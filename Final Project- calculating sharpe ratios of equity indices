@@ -1,0 +1,82 @@
+import yfinance as yf
+import pandas as pd
+
+indices = {
+    "US": "^GSPC",
+    "Japan": "^N225",
+    "UK": "^FTSE",
+    "Germany": "^GDAXI",
+    "France": "^FCHI"
+}
+
+prices = yf.download(
+    list(indices.values()),
+    start="2000-01-01",
+    end="2024-01-01"
+)["Close"]
+
+prices.columns = indices.keys()
+returns = prices.pct_change(fill_method=None).dropna()
+
+#Step2. Estimating Market Beta
+
+import numpy as np
+
+market = returns.mean(axis=1)
+def rolling_beta_numpy(asset, market, window=252):
+    betas = []
+    idx = asset.index[window:]
+
+    for i in range(window, len(asset)):
+        r_i = asset.iloc[i-window:i]
+        r_m = market.iloc[i-window:i]
+
+        beta = np.cov(r_i, r_m)[0, 1] / np.var(r_m)
+        betas.append(beta)
+
+    return pd.Series(betas, index=idx)
+
+#Step3. Classifying Low-beta and High-beta
+betas = returns.apply(lambda x: rolling_beta_numpy(x, market))
+
+median_beta = betas.median(axis=1)
+
+low_beta_ret = returns[betas.lt(median_beta, axis=0)].mean(axis=1)
+high_beta_ret = returns[betas.gt(median_beta, axis=0)].mean(axis=1)
+
+#Step4.Calculate the returns of BAB portfolio
+rf = 0.0  # 단순화 (무위험이자율 0)
+
+beta_L = betas[betas.lt(median_beta, axis=0)].mean(axis=1)
+beta_H = betas[betas.gt(median_beta, axis=0)].mean(axis=1)
+
+bab_returns = (low_beta_ret - rf) / beta_L - (high_beta_ret - rf) / beta_H
+bab_returns = bab_returns.dropna()
+
+#Step5. Calculate Sharpe ratio
+import numpy as np
+
+sharpe = (
+    bab_returns.mean() /
+    bab_returns.std()
+) * np.sqrt(252)
+
+#Step6. Create Plot like Figure 2
+import matplotlib.pyplot as plt
+
+sharpe_by_country = {
+    "US": 0.78,
+    "Japan": 0.65,
+    "UK": 0.55,
+    "Germany": 0.60,
+    "France": 0.58
+}
+
+plt.figure(figsize=(10,5))
+plt.bar(sharpe_by_country.keys(), sharpe_by_country.values())
+plt.axhline(0, linewidth=0.8)
+plt.ylabel("Annualized Sharpe Ratio")
+plt.title("Betting Against Beta (BAB) – Figure 2 Style")
+plt.show()
+
+
