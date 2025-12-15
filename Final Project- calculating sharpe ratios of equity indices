@@ -47,7 +47,7 @@ high_beta_ret = returns[betas.gt(median_beta, axis=0)].mean(axis=1)
 
 '''
 ###RESULTS:
-Table 1. Betas of each equity indexes in several countries:
+Table 1. Betas of each equity indexes in several countries.
                   US     Japan        UK   Germany    France
 Date                                                        
 2001-03-14  1.269828  0.928647  1.301843  0.852736  0.666866
@@ -63,36 +63,41 @@ Date
 2023-12-29  1.207217  0.850406  1.185099  1.028118  0.749080
 [4787 rows x 5 columns]
 
-Table 2. Median betas of each year
-Date
-2001-03-14    0.928647
-2001-03-15    0.927304
-2001-03-16    0.927366
-2001-03-19    0.945419
-2001-03-22    0.945778
-                ...   
-2023-12-20    1.041029
-2023-12-21    1.037745
-2023-12-22    1.032815
-2023-12-28    1.029490
-2023-12-29    1.028118
-[Length: 4787, dtype: float64]
+Table 2. Beta statistics of each country on the investigated period.
+        Mean Beta  Median Beta  Std Beta
+US        1.233392     1.223689  0.090538
+Japan     0.944601     0.943534  0.087158
+UK        1.248808     1.246427  0.126053
+Germany   0.779256     0.743726  0.164033
+France    0.813863     0.806663  0.237835
 
-Table 3. Returns of Low-beta and High beta indices of each days
-Date
-Date           Low-Beta Returns            High-Beta Returns
-2000-01-05         NaN                        NaN
-2000-01-06         NaN                        NaN
-2000-01-07         NaN                        NaN
-2000-01-12         NaN                        NaN
-2000-01-13         NaN                        NaN
-                   ...                        ... 
-2023-12-20        0.011958                 0.000239
-2023-12-21       -0.009311                 -0.002157
-2023-12-22        0.000613                 0.000392
-2023-12-28       -0.002251                 -0.003631
-2023-12-29       -0.000445                 0.002032
-[Length: 5039, dtype: float64]
+Table 3. Returns of Low-beta and High beta indices of each days in France
+Date         High-Beta Returns
+2002-02-28    0.001394
+2002-03-01    0.021172
+2002-03-04    0.059029
+2002-03-05   -0.008888
+2002-03-06    0.000888
+                ...   
+2022-05-12   -0.017736
+2022-05-13    0.026368
+2022-05-16    0.004518
+2022-05-17    0.004245
+2022-05-18    0.009432
+
+Date          Low-Beta Returns          
+2001-03-14      0.002021                   
+2001-03-15      0.026110
+2001-03-16      0.006595
+2001-03-19     -0.003434
+2001-03-22     -0.019076
+                  ...   
+2023-12-20      0.013744
+2023-12-21     -0.015901
+2023-12-22      0.000862
+2023-12-28     -0.004205
+2023-12-29     -0.002250
+
 '''
 
 #Step4.Calculate the returns of BAB portfolio
@@ -107,19 +112,12 @@ bab_returns = bab_returns.dropna()
 '''
 ###RESULTS:
 Table 4. BAB returns of the portfolios
-Date
-2001-03-14    0.000683
-2001-03-15    0.009851
-2001-03-16    0.007242
-2001-03-19    0.018917
-2001-03-22    0.016512
-                ...   
-2023-12-20    0.014896
-2023-12-21   -0.009922
-2023-12-22    0.000443
-2023-12-28    0.000202
-2023-12-29   -0.002255
-[Length: 4787, dtype: float64]
+Country     BAB returns
+US         -0.000158
+Japan        0.000069
+UK         -0.000416
+Germany     0.000185
+France      -0.000345
 '''
 
 #Step5. Calculate Sharpe ratio
@@ -151,4 +149,10 @@ plt.show()
 '''
 ###RESULTS:
 Table 5. BAB Sharpe ratios of each equity indices.
-(stated in the paper)
+Germany    0.238070
+Japan      0.095289
+US        -0.178219
+France    -0.383192
+UK        -0.458727
+[dtype: float64]
+(Plots are shown in the final project paper)
