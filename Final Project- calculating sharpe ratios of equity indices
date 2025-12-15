@@ -1,3 +1,4 @@
+#Step1. Importing the equity data
 import yfinance as yf
 import pandas as pd
 
