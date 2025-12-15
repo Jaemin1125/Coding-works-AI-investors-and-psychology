@@ -45,6 +45,56 @@ median_beta = betas.median(axis=1)
 low_beta_ret = returns[betas.lt(median_beta, axis=0)].mean(axis=1)
 high_beta_ret = returns[betas.gt(median_beta, axis=0)].mean(axis=1)
 
+'''
+###RESULTS:
+Table 1. Betas of each equity indexes in several countries:
+                  US     Japan        UK   Germany    France
+Date                                                        
+2001-03-14  1.269828  0.928647  1.301843  0.852736  0.666866
+2001-03-15  1.257336  0.927304  1.313212  0.872000  0.650068
+2001-03-16  1.253200  0.927366  1.312456  0.869548  0.657350
+2001-03-19  1.257575  0.945419  1.298052  0.864525  0.654348
+2001-03-22  1.257935  0.945778  1.299302  0.863019  0.653888
+...              ...       ...       ...       ...       ...
+2023-12-20  1.207521  0.847200  1.187041  1.041029  0.737130
+2023-12-21  1.206926  0.848359  1.186854  1.037745  0.740037
+2023-12-22  1.207829  0.849038  1.187263  1.032815  0.742975
+2023-12-28  1.209611  0.848722  1.188165  1.029490  0.743932
+2023-12-29  1.207217  0.850406  1.185099  1.028118  0.749080
+[4787 rows x 5 columns]
+
+Table 2. Median betas of each year
+Date
+2001-03-14    0.928647
+2001-03-15    0.927304
+2001-03-16    0.927366
+2001-03-19    0.945419
+2001-03-22    0.945778
+                ...   
+2023-12-20    1.041029
+2023-12-21    1.037745
+2023-12-22    1.032815
+2023-12-28    1.029490
+2023-12-29    1.028118
+[Length: 4787, dtype: float64]
+
+Table 3. Returns of Low-beta and High beta indices of each days
+Date
+Date           Low-Beta Returns            High-Beta Returns
+2000-01-05         NaN                        NaN
+2000-01-06         NaN                        NaN
+2000-01-07         NaN                        NaN
+2000-01-12         NaN                        NaN
+2000-01-13         NaN                        NaN
+                   ...                        ... 
+2023-12-20        0.011958                 0.000239
+2023-12-21       -0.009311                 -0.002157
+2023-12-22        0.000613                 0.000392
+2023-12-28       -0.002251                 -0.003631
+2023-12-29       -0.000445                 0.002032
+[Length: 5039, dtype: float64]
+'''
+
 #Step4.Calculate the returns of BAB portfolio
 rf = 0.0  # 단순화 (무위험이자율 0)
 
@@ -53,6 +103,24 @@ beta_H = betas[betas.gt(median_beta, axis=0)].mean(axis=1)
 
 bab_returns = (low_beta_ret - rf) / beta_L - (high_beta_ret - rf) / beta_H
 bab_returns = bab_returns.dropna()
+
+'''
+###RESULTS:
+Table 4. BAB returns of the portfolios
+Date
+2001-03-14    0.000683
+2001-03-15    0.009851
+2001-03-16    0.007242
+2001-03-19    0.018917
+2001-03-22    0.016512
+                ...   
+2023-12-20    0.014896
+2023-12-21   -0.009922
+2023-12-22    0.000443
+2023-12-28    0.000202
+2023-12-29   -0.002255
+[Length: 4787, dtype: float64]
+'''
 
 #Step5. Calculate Sharpe ratio
 import numpy as np
@@ -80,4 +148,7 @@ plt.ylabel("Annualized Sharpe Ratio")
 plt.title("Betting Against Beta (BAB) – Figure 2 Style")
 plt.show()
 
-
+'''
+###RESULTS:
+Table 5. BAB Sharpe ratios of each equity indices.
+(stated in the paper)
