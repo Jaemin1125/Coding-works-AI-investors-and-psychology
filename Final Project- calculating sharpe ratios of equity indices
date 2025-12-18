@@ -37,13 +37,58 @@ def rolling_beta_numpy(asset, market, window=252):
 
     return pd.Series(betas, index=idx)
 
-#Step3. Classifying Low-beta and High-beta
+beta_summary = {}
+
+for country in returns.columns:
+    r = returns[country]
+
+    # rolling beta
+    beta = rolling_beta_numpy(r, market)
+
+    beta_summary[country] = {
+        "Mean Beta": beta.mean(),
+        "Median Beta": beta.median(),
+        "Std Beta": beta.std()
+    }
+
+beta_df = pd.DataFrame(beta_summary).T
+
 betas = returns.apply(lambda x: rolling_beta_numpy(x, market))
 
 median_beta = betas.median(axis=1)
 
-low_beta_ret = returns[betas.lt(median_beta, axis=0)].mean(axis=1)
-high_beta_ret = returns[betas.gt(median_beta, axis=0)].mean(axis=1)
+print(betas)
+print(beta_df)
+
+#Step3. Classifying Low-beta and High-beta
+country_sharpe = {}
+country_bab_return = {}
+for country in returns.columns:
+    r = returns[country]
+
+    # rolling beta
+    beta = rolling_beta_numpy(r, market)
+
+    # align returns
+    r = r.loc[beta.index]
+
+    # split by beta regime
+    median_beta = beta.median()
+
+    low_beta_ret = r[beta <= median_beta]
+    high_beta_ret = r[beta > median_beta]
+    
+#Step4.Calculate the returns of BAB portfolio(time-series)
+    bab_return = low_beta_ret.mean() - high_beta_ret.mean()
+
+    # volatility (전체 표본)
+    vol = r.std()
+
+#Step5. Calculate Sharpe ratio(annualized)
+    sharpe = (bab_return / vol) * np.sqrt(252)
+
+    country_bab_return[country] = bab_return
+    country_sharpe[country] = sharpe
 
 '''
 ###RESULTS:
@@ -72,19 +117,6 @@ Germany   0.779256     0.743726  0.164033
 France    0.813863     0.806663  0.237835
 
 Table 3. Returns of Low-beta and High beta indices of each days in France
-Date         High-Beta Returns
-2002-02-28    0.001394
-2002-03-01    0.021172
-2002-03-04    0.059029
-2002-03-05   -0.008888
-2002-03-06    0.000888
-                ...   
-2022-05-12   -0.017736
-2022-05-13    0.026368
-2022-05-16    0.004518
-2022-05-17    0.004245
-2022-05-18    0.009432
-
 Date          Low-Beta Returns          
 2001-03-14      0.002021                   
 2001-03-15      0.026110
@@ -98,16 +130,20 @@ Date          Low-Beta Returns
 2023-12-28     -0.004205
 2023-12-29     -0.002250
 
+Date         High-Beta Returns
+2002-02-28    0.001394
+2002-03-01    0.021172
+2002-03-04    0.059029
+2002-03-05   -0.008888
+2002-03-06    0.000888
+                ...   
+2022-05-12   -0.017736
+2022-05-13    0.026368
+2022-05-16    0.004518
+2022-05-17    0.004245
+2022-05-18    0.009432
 '''
 
-#Step4.Calculate the returns of BAB portfolio
-rf = 0.0  # 단순화 (무위험이자율 0)
-
-beta_L = betas[betas.lt(median_beta, axis=0)].mean(axis=1)
-beta_H = betas[betas.gt(median_beta, axis=0)].mean(axis=1)
-
-bab_returns = (low_beta_ret - rf) / beta_L - (high_beta_ret - rf) / beta_H
-bab_returns = bab_returns.dropna()
 
 '''
 ###RESULTS:
@@ -120,35 +156,20 @@ Germany     0.000185
 France      -0.000345
 '''
 
-#Step5. Calculate Sharpe ratio
-import numpy as np
 
-sharpe = (
-    bab_returns.mean() /
-    bab_returns.std()
-) * np.sqrt(252)
+# =========================
+# Step 5. Result
+# =========================
+bab_df = pd.Series(country_bab_return, name="BAB Return")
+sharpe_df = pd.Series(country_sharpe).sort_values(ascending=False)
 
-#Step6. Create Plot like Figure 2
-import matplotlib.pyplot as plt
-
-sharpe_by_country = {
-    "US": 0.78,
-    "Japan": 0.65,
-    "UK": 0.55,
-    "Germany": 0.60,
-    "France": 0.58
-}
-
-plt.figure(figsize=(10,5))
-plt.bar(sharpe_by_country.keys(), sharpe_by_country.values())
-plt.axhline(0, linewidth=0.8)
-plt.ylabel("Annualized Sharpe Ratio")
-plt.title("Betting Against Beta (BAB) – Figure 2 Style")
-plt.show()
-
+print(low_beta_ret)
+print(high_beta_ret)
+print(bab_df)
+print(sharpe_df)
 '''
 ###RESULTS:
-Table 5. BAB Sharpe ratios of each equity indices.
+Table 5, Figure 1. BAB Sharpe ratios of each equity indices.
 Germany    0.238070
 Japan      0.095289
 US        -0.178219
@@ -156,3 +177,28 @@ France    -0.383192
 UK        -0.458727
 [dtype: float64]
 (Plots are shown in the final project paper)
+'''
+
+import matplotlib.pyplot as plt
+
+# 이미 계산된 결과라고 가정
+sharpe_df = pd.Series({
+    "Germany": 0.238070,
+    "Japan": 0.095289,
+    "US": -0.178219,
+    "France": -0.383192,
+    "UK": -0.458727
+})
+
+
+sharpe_df = sharpe_df.sort_values(ascending=False)
+
+plt.figure(figsize=(8, 5))
+plt.bar(sharpe_df.index, sharpe_df.values)
+
+plt.axhline(0, linewidth=1)
+
+plt.ylabel("Sharpe Ratio (Annualized)")
+plt.title("Country-level BAB Sharpe Ratios")
+
+plt.show()
